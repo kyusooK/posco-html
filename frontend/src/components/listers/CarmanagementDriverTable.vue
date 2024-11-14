@@ -1,0 +1,172 @@
+<template>
+    <div>
+        <v-data-table
+                :headers="headers"
+                :items="values"
+                :items-per-page="5"
+                class="elevation-1"
+        ></v-data-table>
+
+        <v-col style="margin-bottom:40px;">
+            <div class="text-center">
+                <v-dialog
+                        v-model="openDialog"
+                        width="332.5"
+                        fullscreen
+                        hide-overlay
+                        transition="dialog-bottom-transition"
+                >
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-fab-transition>
+                            <v-btn
+                                    color="primary"
+                                    fab
+                                    dark
+                                    large
+                                    style="position:absolute; bottom: 5%; right: 2%; z-index:99"
+                                    @click="openDialog=true;"
+                            >
+                                <v-icon v-bind="attrs" v-on="on">mdi-plus</v-icon>
+                            </v-btn>
+                        </v-fab-transition>
+                    </template>
+
+                    <CarmanagementDriver :offline="offline" class="video-card" :isNew="true" :editMode="true" v-model="newValue" @add="append" v-if="tick"/>
+                
+                    <v-btn
+                            style="postition:absolute; top:2%; right:2%"
+                            @click="closeDialog()"
+                            depressed 
+                            icon 
+                            absolute
+                    >
+                        <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                </v-dialog>
+            </div>
+        </v-col>
+    </div>
+</template>
+
+<script>
+    const axios = require('axios').default;
+    import CarmanagementDriver from './../CarmanagementDriver.vue';
+
+    export default {
+        name: 'CarmanagementDriverManager',
+        components: {
+            CarmanagementDriver,
+        },
+        props: {
+            offline: Boolean,
+            editMode: Boolean,
+            isNew: Boolean
+        },
+        data: () => ({
+            values: [],
+            headers: 
+                [
+                    { text: "driverEmpNo", value: "driverEmpNo" },
+                    { text: "name", value: "name" },
+                    { text: "companyCode", value: "companyCode" },
+                    { text: "worksCode", value: "worksCode" },
+                    { text: "hrAccessLevel", value: "hrAccessLevel" },
+                    { text: "supervisorType", value: "supervisorType" },
+                    { text: "currentJob", value: "currentJob" },
+                    { text: "handPhone", value: "handPhone" },
+                    { text: "licenseNumber", value: "licenseNumber" },
+                    { text: "nationalIdentifier", value: "nationalIdentifier" },
+                    { text: "resourceId", value: "resourceId" },
+                    { text: "carType", value: "carType" },
+                    { text: "retirementFlag", value: "retirementFlag" },
+                    { text: "retiredDate", value: "retiredDate" },
+                    { text: "image", value: "image" },
+                    { text: "description", value: "description" },
+                    { text: "lastUpdateDate", value: "lastUpdateDate" },
+                    { text: "lastUpdatedBy", value: "lastUpdatedBy" },
+                    { text: "creationDate", value: "creationDate" },
+                    { text: "createdBy", value: "createdBy" },
+                    { text: "createdObjectType", value: "createdObjectType" },
+                    { text: "createdObjectId", value: "createdObjectId" },
+                    { text: "createdProgramId", value: "createdProgramId" },
+                    { text: "creationTimestamp", value: "creationTimestamp" },
+                    { text: "lastUpdatedObjectType", value: "lastUpdatedObjectType" },
+                    { text: "lastUpdatedObjectId", value: "lastUpdatedObjectId" },
+                    { text: "lastUpdateProgramId", value: "lastUpdateProgramId" },
+                    { text: "lastUpdateTimestamp", value: "lastUpdateTimestamp" },
+                    { text: "dataEndStatus", value: "dataEndStatus" },
+                    { text: "dataEndObjectType", value: "dataEndObjectType" },
+                    { text: "dataEndObjectId", value: "dataEndObjectId" },
+                    { text: "dataEndProgramId", value: "dataEndProgramId" },
+                    { text: "dataEndTimestamp", value: "dataEndTimestamp" },
+                ],
+            driver : [],
+            newValue: {},
+            tick : true,
+            openDialog : false,
+        }),
+        async created() {
+            if(this.offline){
+                if(!this.values) this.values = [];
+                return;
+            }
+
+            var temp = await axios.get(axios.fixUrl('/drivers'))
+            temp.data._embedded.drivers.map(obj => obj.id=obj._links.self.href.split("/")[obj._links.self.href.split("/").length - 1])
+            this.values = temp.data._embedded.drivers;
+
+            this.newValue = {
+                'driverEmpNo': '',
+                'name': '',
+                'companyCode': '',
+                'worksCode': '',
+                'hrAccessLevel': '',
+                'supervisorType': '',
+                'currentJob': '',
+                'handPhone': '',
+                'licenseNumber': '',
+                'nationalIdentifier': '',
+                'resourceId': 0,
+                'carType': '',
+                'retirementFlag': '',
+                'retiredDate': '2024-11-14',
+                'image': {},
+                'description': '',
+                'lastUpdateDate': '2024-11-14',
+                'lastUpdatedBy': 0,
+                'creationDate': '2024-11-14',
+                'createdBy': 0,
+                'createdObjectType': '',
+                'createdObjectId': '',
+                'createdProgramId': '',
+                'creationTimestamp': '2024-11-14',
+                'lastUpdatedObjectType': '',
+                'lastUpdatedObjectId': '',
+                'lastUpdateProgramId': '',
+                'lastUpdateTimestamp': '2024-11-14',
+                'dataEndStatus': '',
+                'dataEndObjectType': '',
+                'dataEndObjectId': '',
+                'dataEndProgramId': '',
+                'dataEndTimestamp': '2024-11-14',
+            }
+        },
+        methods: {
+            closeDialog(){
+                this.openDialog = false
+            },
+            append(value){
+                this.tick = false
+                this.newValue = {}
+                this.values.push(value)
+                
+                this.$emit('input', this.values);
+
+                this.$nextTick(function(){
+                    this.tick=true
+                })
+            },
+        }
+    }
+</script>
+
